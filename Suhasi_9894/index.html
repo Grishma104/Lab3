@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IndexedDB Example</title>
+</head>
+<body>
+    <script>
+        // Open IndexedDB
+        let db;
+        const request = indexedDB.open("Lab3Database", 1);
+
+        request.onupgradeneeded = (event) => {
+            db = event.target.result;
+            const objectStore = db.createObjectStore("objects", { keyPath: "UUID" });
+            objectStore.createIndex("source_database", "source_database", { unique: false });
+            objectStore.createIndex("created_at", "created_at", { unique: false });
+            objectStore.createIndex("updated_at", "updated_at", { unique: false });
+        };
+
+        request.onsuccess = (event) => {
+            db = event.target.result;
+            generateAndStoreObjects();
+        };
+
+        // Function to generate and store 1000 objects
+        function generateAndStoreObjects() {
+            const transaction = db.transaction(["objects"], "readwrite");
+            const objectStore = transaction.objectStore("objects");
+
+            for (let i = 0; i < 1000; i++) {
+                const obj = {
+                    UUID: crypto.randomUUID(),
+                    source_database: "IndexedDB",
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    attribute1: `value1_${i}`,
+                    attribute2: `value2_${i}`,
+                    attribute3: `value3_${i}`
+                };
+                objectStore.add(obj);
+            }
+
+            transaction.oncomplete = () => {
+                console.log("All objects have been added to IndexedDB.");
+            };
+        }
+    </script>
+</body>
+</html>
